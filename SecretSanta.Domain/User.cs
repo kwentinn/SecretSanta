@@ -1,8 +1,10 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("SecretSanta.DomainTest")]
 namespace SecretSanta.Domain
 {
+	[DebuggerDisplay("{Firstname} {Lastname} {Email}")]
 	internal class User
 	{
 		public string Firstname { get; private set; }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SecretSanta.Domain.Exceptions;
+using SecretSanta.Domain.Services;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -12,11 +14,13 @@ namespace SecretSanta.Domain
 
 		private List<User> _users = new List<User>();
 		private List<SecretSantaDraw> _secretSantaDraws = new List<SecretSantaDraw>();
+		private readonly IListRandomizer _listRandomizer;
 
-		public SecretSantaGroup(Guid id, string name)
+		public SecretSantaGroup(Guid id, string name, IListRandomizer listRandomizer)
 		{
 			Id = id;
 			Name = name;
+			_listRandomizer = listRandomizer;
 		}
 
 		public User AddUser(User user)
@@ -34,19 +38,18 @@ namespace SecretSanta.Domain
 		public SecretSantaDraw CreateDraw(string name)
 		{
 			if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(nameof(name));
-			if (_users.Count % 2 != 0) throw new ApplicationException("Un nombre impair d'utilisateurs est nécessaire!");
 
 			var newDraw = new SecretSantaDraw(Guid.NewGuid(), name);
 			_secretSantaDraws.Add(newDraw);
 			return newDraw;
 		}
-		public void Draw(Guid drawId)
+		public void Draw(Guid drawId, bool shuffle = false)
 		{
 			SecretSantaDraw draw = _secretSantaDraws.Find(d => d.Id == drawId);
 
-			if (draw is null) throw new ApplicationException($"Draw not found (id: {drawId})");
+			if (draw is null) throw new DrawNotFoundException(drawId);
 
-			draw.Draw(_users);
+			draw.Draw(_users.AsReadOnly(), shuffle, _listRandomizer);
 		}
 	}
 }

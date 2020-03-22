@@ -1,5 +1,8 @@
-﻿using System;
+﻿using SecretSanta.Domain.Exceptions;
+using SecretSanta.Domain.Services;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("SecretSanta.DomainTest")]
@@ -17,8 +20,11 @@ namespace SecretSanta.Domain
 
 		private List<SecretSantaDrawLine> _secretSantaDrawLines = new List<SecretSantaDrawLine>();
 
+		public ReadOnlyCollection<SecretSantaDrawLine> SecretSantaDrawLines => _secretSantaDrawLines.AsReadOnly();
+
 		internal SecretSantaDraw(Guid id, string name, DateTime? createdAt = null)
 		{
+			if (id == Guid.Empty) throw new ArgumentException(nameof(id));
 			if (createdAt == null) createdAt = DateTime.UtcNow;
 
 			_createdAt = createdAt.Value;
@@ -26,14 +32,33 @@ namespace SecretSanta.Domain
 			Name = name;
 		}
 
-		internal List<SecretSantaDrawLine> Draw(List<User> users)
+		internal void Draw(ReadOnlyCollection<User> users, bool shuffleUsers, IListRandomizer listRandomizer)
 		{
 			if (users is null) throw new ArgumentNullException(nameof(users));
+			if (listRandomizer is null) throw new ArgumentNullException(nameof(listRandomizer));
+			if (users.Count < 3) throw new IncorrectNumberOfUsersException();
 
-			int count = users.Count;
+			List<User> tempUsers = new List<User>(users);
+			if (shuffleUsers)
+			{
+				tempUsers = listRandomizer.Shuffle(tempUsers);
+			}
 
-
-			return _secretSantaDrawLines;
+			int indexTo;
+			for (int indexFrom = 0; indexFrom < tempUsers.Count; indexFrom++)
+			{
+				indexTo = indexFrom + 1;
+				if (indexTo >= tempUsers.Count)
+				{
+					indexTo = indexTo - tempUsers.Count;
+				}
+				_secretSantaDrawLines.Add(new SecretSantaDrawLine
+				(
+					Guid.NewGuid(),
+					tempUsers[indexFrom],
+					tempUsers[indexTo]
+				));
+			}
 		}
 	}
 }

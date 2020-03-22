@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("SecretSanta.DomainTest")]
@@ -7,6 +8,7 @@ namespace SecretSanta.Domain
 	/// <summary>
 	/// Represents a secret santa draw line
 	/// </summary>
+	[DebuggerDisplay("[{Id}] From:{From.Firstname} To:{To.Firstname}")]
 	internal class SecretSantaDrawLine
 	{
 		public Guid Id { get; private set; }
